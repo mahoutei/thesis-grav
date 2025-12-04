@@ -1,0 +1,40 @@
+% =============================================================================
+% FILE: chapters/chapter5.tex
+% DESCRIPTION: Discussion
+% =============================================================================
+
+\chapter{DISCUSSION}
+
+\section{Interpretation of Results}
+
+GraviLens demonstrates that integrating hierarchical attention with physics-informed constraints significantly improves both accuracy and physical consistency.
+
+\subsection{Superiority of Swin Transformer}
+
+The hierarchical architecture naturally captures multi-scale lensing features, from fine arcs to global mass distributions, explaining the 5.1\% improvement over CNNs.
+
+\subsection{Value of Physics-Informed Learning}
+
+Direct embedding of SIE equations constrains the solution space, preventing non-physical predictions common in black-box models.
+
+\section{Comparison with Existing Methods}
+
+GraviLens outperforms:
+\begin{itemize}
+    \item Traditional CNN approaches (Hezaveh et al. 2017) in physical consistency
+    \item LensPINN (Ojha et al. 2024) in computational efficiency
+    \item Standard transformers in parameter accuracy
+\end{itemize}
+
+\section{Limitations}
+
+\begin{itemize}
+    \item Limited to SIE model approximation
+    \item Trained on simulated data with domain gap to real observations
+    \item Single-band imaging only
+    \item Fixed 64×64 resolution
+\end{itemize}
+
+\section{Implications for Future Surveys}
+
+The $\sim$100× speedup over traditional methods makes GraviLens suitable for processing millions of LSST and Euclid candidates.

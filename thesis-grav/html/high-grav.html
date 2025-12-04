@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GraviLens-Swin High-Level Architecture</title>
+<style>
+  body {
+    margin: 0;
+    padding: 20px;
+    background: #f8f9fa;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  .container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    padding: 30px;
+    max-width: 1600px;
+    width: 100%;
+  }
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 28px;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .subtitle {
+    text-align: center;
+    color: #7f8c8d;
+    font-size: 14px;
+    margin-bottom: 30px;
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .block {
+    stroke: #34495e;
+    stroke-width: 2.5;
+    fill: #ecf0f1;
+  }
+  .physics-block {
+    fill: #e8f4f8;
+    stroke: #3498db;
+  }
+  .transformer-block {
+    fill: #fef5e7;
+    stroke: #f39c12;
+  }
+  .input-output {
+    fill: #e8f8f5;
+    stroke: #16a085;
+  }
+  .attention-block {
+    fill: #fadbd8;
+    stroke: #e74c3c;
+  }
+  .arrow {
+    stroke: #2c3e50;
+    stroke-width: 2.5;
+    fill: none;
+    marker-end: url(#arrowhead);
+  }
+  .physics-arrow {
+    stroke: #3498db;
+    stroke-width: 2.5;
+    marker-end: url(#arrowhead-blue);
+  }
+  .data-arrow {
+    stroke: #16a085;
+    stroke-width: 2.5;
+    marker-end: url(#arrowhead-green);
+  }
+  .text-title {
+    font-size: 14px;
+    font-weight: 600;
+    fill: #2c3e50;
+  }
+  .text-detail {
+    font-size: 11px;
+    fill: #5d6d7e;
+  }
+  .text-small {
+    font-size: 9px;
+    fill: #7f8c8d;
+  }
+  .legend-box {
+    stroke: #bdc3c7;
+    stroke-width: 1.5;
+    fill: #f8f9fa;
+  }
+  .equation {
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 11px;
+    fill: #34495e;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>GraviLens-Swin: Physics-Informed Vision Transformer</h1>
+  <p class="subtitle">High-Level Architecture for Gravitational Lens Detection and Classification</p>
+  
+  <svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+    <!-- Define arrow markers -->
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+        <polygon points="0 0, 10 3, 0 6" fill="#2c3e50"/>
+      </marker>
+      <marker id="arrowhead-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+        <polygon points="0 0, 10 3, 0 6" fill="#3498db"/>
+      </marker>
+      <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+        <polygon points="0 0, 10 3, 0 6" fill="#16a085"/>
+      </marker>
+    </defs>
+
+    <!-- Title -->
+    <text x="800" y="30" class="text-title" text-anchor="middle" style="font-size: 16px;">
+      Forward Pass Data Flow
+    </text>
+
+    <!-- Input -->
+    <rect x="50" y="70" width="180" height="100" rx="5" class="input-output"/>
+    <text x="140" y="100" class="text-title" text-anchor="middle">Input Image</text>
+    <text x="140" y="120" class="text-detail" text-anchor="middle">64×64 grayscale</text>
+    <text x="140" y="135" class="text-small" text-anchor="middle">Galaxy observation</text>
+    <text x="140" y="150" class="text-small" text-anchor="middle">B × 1 × 64 × 64</text>
+
+    <!-- Arrow 1 -->
+    <path d="M 230 120 L 290 120" class="data-arrow"/>
+    
+    <!-- Tokenization 1 -->
+    <rect x="290" y="70" width="180" height="100" rx="5" class="transformer-block"/>
+    <text x="380" y="100" class="text-title" text-anchor="middle">Shifted Patch</text>
+    <text x="380" y="116" class="text-title" text-anchor="middle">Tokenization</text>
+    <text x="380" y="135" class="text-small" text-anchor="middle">5-way augmentation</text>
+    <text x="380" y="150" class="text-small" text-anchor="middle">8×8 patches, d=192</text>
+
+    <!-- Arrow 2 -->
+    <path d="M 470 120 L 520 120" class="arrow"/>
+    <text x="495" y="110" class="text-small" text-anchor="middle" fill="#16a085">Patches₁</text>
+
+    <!-- Physics Encoder Box -->
+    <rect x="520" y="50" width="560" height="700" rx="8" fill="#f0f8ff" stroke="#3498db" stroke-width="3" stroke-dasharray="5,5"/>
+    <text x="800" y="80" class="text-title" text-anchor="middle" style="font-size: 15px; fill: #3498db;">
+      Physics-Informed Encoder Module
+    </text>
+
+    <!-- Swin Transformer Stage 1 -->
+    <rect x="550" y="110" width="220" height="120" rx="5" class="transformer-block"/>
+    <text x="660" y="145" class="text-title" text-anchor="middle">Hierarchical Swin</text>
+    <text x="660" y="161" class="text-title" text-anchor="middle">Transformer</text>
+    <text x="660" y="180" class="text-small" text-anchor="middle">Window Size: 4×4</text>
+    <text x="660" y="195" class="text-small" text-anchor="middle">Shifted Window Attn</text>
+    <text x="660" y="210" class="text-small" text-anchor="middle">Depth: 2 blocks</text>
+
+    <!-- Arrow to SIE Predictor -->
+    <path d="M 660 230 L 660 270" class="physics-arrow"/>
+
+    <!-- SIE Parameter Predictor -->
+    <rect x="550" y="270" width="220" height="140" rx="5" class="physics-block"/>
+    <text x="660" y="300" class="text-title" text-anchor="middle">SIE Parameter</text>
+    <text x="660" y="316" class="text-title" text-anchor="middle">Predictor</text>
+    <text x="660" y="340" class="text-small" text-anchor="middle">Global: CLS token → k, q, φ</text>
+    <text x="660" y="355" class="text-small" text-anchor="middle">Spatial: Patches → Δk, Δq, Δφ</text>
+    <text x="660" y="375" class="equation" text-anchor="middle">k(x,y), q(x,y), φ(x,y)</text>
+    <text x="660" y="395" class="text-small" text-anchor="middle">Output: 3 × 64 × 64</text>
+
+    <!-- Arrow to Deflection -->
+    <path d="M 660 410 L 660 460" class="physics-arrow"/>
+
+    <!-- SIE Deflection Physics -->
+    <rect x="550" y="460" width="220" height="160" rx="5" class="physics-block"/>
+    <text x="660" y="490" class="text-title" text-anchor="middle">SIE Deflection</text>
+    <text x="660" y="506" class="text-title" text-anchor="middle">Physics Engine</text>
+    <text x="660" y="530" class="equation" text-anchor="middle">α(x,y) = f(k, q, φ)</text>
+    <text x="660" y="550" class="text-small" text-anchor="middle">Einstein deflection</text>
+    <text x="660" y="565" class="text-small" text-anchor="middle">Stable numerics</text>
+    <text x="660" y="580" class="text-small" text-anchor="middle">Gradient-safe atan/atanh</text>
+    <text x="660" y="600" class="text-small" text-anchor="middle" fill="#c0392b">β = θ - α(θ)</text>
+
+    <!-- Arrow to Ray Tracing -->
+    <path d="M 660 620 L 660 660" class="physics-arrow"/>
+
+    <!-- Differentiable Ray Tracing -->
+    <rect x="550" y="660" width="220" height="120" rx="5" class="physics-block"/>
+    <text x="660" y="690" class="text-title" text-anchor="middle">Differentiable</text>
+    <text x="660" y="706" class="text-title" text-anchor="middle">Ray Tracing</text>
+    <text x="660" y="730" class="text-small" text-anchor="middle">grid_sample(I, β)</text>
+    <text x="660" y="745" class="text-small" text-anchor="middle">Lens correction</text>
+    <text x="660" y="760" class="text-small" text-anchor="middle">Backprop-friendly</text>
+
+    <!-- Corrected Image Output from Physics Box -->
+    <rect x="830" y="660" width="200" height="120" rx="5" class="input-output"/>
+    <text x="930" y="695" class="text-title" text-anchor="middle">Lens-Corrected</text>
+    <text x="930" y="711" class="text-title" text-anchor="middle">Image</text>
+    <text x="930" y="735" class="text-small" text-anchor="middle">I_corrected</text>
+    <text x="930" y="750" class="text-small" text-anchor="middle">64×64</text>
+    <text x="930" y="765" class="text-small" text-anchor="middle">Physics-inverted</text>
+
+    <!-- Arrow out of physics box -->
+    <path d="M 1030 720 L 1120 720" class="physics-arrow"/>
+    <text x="1075" y="710" class="text-small" text-anchor="middle" fill="#3498db">I_corrected</text>
+
+    <!-- Tokenization 2 -->
+    <rect x="1120" y="670" width="180" height="100" rx="5" class="transformer-block"/>
+    <text x="1210" y="700" class="text-title" text-anchor="middle">Shifted Patch</text>
+    <text x="1210" y="716" class="text-title" text-anchor="middle">Tokenization</text>
+    <text x="1210" y="735" class="text-small" text-anchor="middle">Same as initial</text>
+    <text x="1210" y="750" class="text-small" text-anchor="middle">8×8 patches</text>
+
+    <!-- Arrow to Fusion -->
+    <path d="M 1210 670 L 1210 530" class="arrow"/>
+    <text x="1230" y="600" class="text-small" text-anchor="start" fill="#16a085">Patches₂</text>
+
+    <!-- Cross-Attention Fusion -->
+    <rect x="1120" y="410" width="200" height="120" rx="5" class="attention-block"/>
+    <text x="1220" y="445" class="text-title" text-anchor="middle">Cross-Attention</text>
+    <text x="1220" y="461" class="text-title" text-anchor="middle">Fusion</text>
+    <text x="1220" y="485" class="text-small" text-anchor="middle">Q = Patches₁ (original)</text>
+    <text x="1220" y="500" class="text-small" text-anchor="middle">K,V = Patches₂ (corrected)</text>
+    <text x="1220" y="515" class="text-small" text-anchor="middle">Hierarchical stage</text>
+
+    <!-- Arrow from original patches -->
+    <path d="M 770 170 L 1050 170 L 1050 450 L 1120 450" class="arrow"/>
+    <text x="900" y="160" class="text-small" text-anchor="middle" fill="#16a085">Patches₁ (Q)</text>
+
+    <!-- Arrow to Classification -->
+    <path d="M 1320 470 L 1370 470" class="arrow"/>
+
+    <!-- Classification Head -->
+    <rect x="1370" y="410" width="180" height="120" rx="5" class="input-output"/>
+    <text x="1460" y="445" class="text-title" text-anchor="middle">Classification</text>
+    <text x="1460" y="461" class="text-title" text-anchor="middle">Head</text>
+    <text x="1460" y="485" class="text-small" text-anchor="middle">Flatten → FFN</text>
+    <text x="1460" y="500" class="text-small" text-anchor="middle">3 hidden layers</text>
+    <text x="1460" y="515" class="text-small" text-anchor="middle">Softmax(2 classes)</text>
+
+    <!-- Legend -->
+    <rect x="50" y="800" width="1500" height="80" rx="5" class="legend-box"/>
+    <text x="70" y="825" class="text-title">Legend:</text>
+    
+    <rect x="150" y="810" width="80" height="30" rx="3" class="input-output"/>
+    <text x="190" y="830" class="text-small" text-anchor="middle">Data I/O</text>
+    
+    <rect x="250" y="810" width="80" height="30" rx="3" class="transformer-block"/>
+    <text x="290" y="830" class="text-small" text-anchor="middle">Transformer</text>
+    
+    <rect x="350" y="810" width="80" height="30" rx="3" class="physics-block"/>
+    <text x="390" y="830" class="text-small" text-anchor="middle">Physics</text>
+    
+    <rect x="450" y="810" width="80" height="30" rx="3" class="attention-block"/>
+    <text x="490" y="830" class="text-small" text-anchor="middle">Attention</text>
+
+    <text x="70" y="860" class="text-small">
+      <tspan font-weight="600">Key Innovation:</tspan> Dual-path processing with physics-guided lens correction. 
+      Original image features (Q) attend to lens-corrected features (K,V) for robust classification.
+    </text>
+
+    <text x="950" y="830" class="text-small">
+      <tspan font-weight="600">Model Parameters:</tspan> 2.65M trainable
+    </text>
+    <text x="950" y="850" class="text-small">
+      <tspan font-weight="600">Input:</tspan> 64×64 galaxy images
+    </text>
+    <text x="950" y="870" class="text-small">
+      <tspan font-weight="600">Output:</tspan> Binary classification (lensed/unlensed)
+    </text>
+
+    <text x="1300" y="830" class="text-small">
+      <tspan font-weight="600">Training:</tspan> 300 epochs
+    </text>
+    <text x="1300" y="850" class="text-small">
+      <tspan font-weight="600">Optimizer:</tspan> AdamW + Lookahead
+    </text>
+    <text x="1300" y="870" class="text-small">
+      <tspan font-weight="600">Scheduler:</tspan> Warmup Cosine
+    </text>
+  </svg>
+</div>
+</body>
+</html>

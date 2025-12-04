@@ -1,0 +1,53 @@
+% =============================================================================
+% FILE: chapters/chapter6.tex
+% DESCRIPTION: Conclusion and Recommendations
+% =============================================================================
+
+\chapter{CONCLUSION AND RECOMMENDATIONS}
+
+\section{Conclusion}
+
+This thesis successfully developed GraviLens, a novel physics-informed deep learning framework for gravitational lens analysis. Key achievements include:
+
+\begin{enumerate}
+    \item \textbf{Architecture Innovation:} Integration of Swin Transformer with differentiable SIE physics layer
+    \item \textbf{Performance:} 94.2\% classification accuracy with physical consistency
+    \item \textbf{Stability:} Robust training framework combining EMA, Lookahead, and adaptive clipping
+    \item \textbf{Efficiency:} Suitable for large-scale survey applications
+\end{enumerate}
+
+GraviLens demonstrates that combining hierarchical vision transformers with explicit physical constraints produces models that are simultaneously more accurate, physically consistent, and computationally efficient than existing approaches.
+
+\section{Recommendations for Future Work}
+
+\subsection{Model Extensions}
+\begin{itemize}
+    \item Extend to multi-plane lensing systems
+    \item Incorporate source structure modeling
+    \item Support multi-band imaging
+    \item Scale to higher resolutions
+\end{itemize}
+
+\subsection{Training Improvements}
+\begin{itemize}
+    \item Semi-supervised learning on unlabeled real data
+    \item Domain adaptation techniques for sim-to-real transfer
+    \item Active learning for efficient labeling
+\end{itemize}
+
+\subsection{Applications}
+\begin{itemize}
+    \item Deploy on LSST and Euclid data pipelines
+    \item Extend to weak lensing analysis
+    \item Apply to time-delay cosmography
+    \item Integrate with substructure detection modules
+\end{itemize}
+
+\subsection{Theoretical Development}
+\begin{itemize}
+    \item Investigate attention pattern interpretability
+    \item Develop uncertainty quantification methods
+    \item Explore other lens mass models beyond SIE
+\end{itemize}
+
+The GraviLens framework provides a foundation for next-generation automated astrophysical analysis tools.

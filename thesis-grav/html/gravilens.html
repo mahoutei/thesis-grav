@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GraviLens-Swin Detailed Architecture</title>
+<style>
+  body {
+    margin: 0;
+    padding: 20px;
+    background: #f8f9fa;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  .container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    padding: 30px;
+    max-width: 1800px;
+    width: 100%;
+  }
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 28px;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .subtitle {
+    text-align: center;
+    color: #7f8c8d;
+    font-size: 14px;
+    margin-bottom: 30px;
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .module-box {
+    stroke: #2c3e50;
+    stroke-width: 2;
+    fill: #ecf0f1;
+  }
+  .layer-box {
+    stroke: #34495e;
+    stroke-width: 1.5;
+    fill: #ffffff;
+  }
+  .physics-layer {
+    fill: #e3f2fd;
+    stroke: #1976d2;
+  }
+  .attention-layer {
+    fill: #fce4ec;
+    stroke: #c2185b;
+  }
+  .mlp-layer {
+    fill: #fff3e0;
+    stroke: #f57c00;
+  }
+  .norm-layer {
+    fill: #f3e5f5;
+    stroke: #7b1fa2;
+  }
+  .conv-layer {
+    fill: #e0f2f1;
+    stroke: #00796b;
+  }
+  .arrow {
+    stroke: #2c3e50;
+    stroke-width: 2;
+    fill: none;
+    marker-end: url(#arrowhead);
+  }
+  .thin-arrow {
+    stroke: #7f8c8d;
+    stroke-width: 1.5;
+    fill: none;
+    marker-end: url(#arrowhead-thin);
+  }
+  .text-title {
+    font-size: 13px;
+    font-weight: 600;
+    fill: #2c3e50;
+  }
+  .text-layer {
+    font-size: 10px;
+    fill: #34495e;
+  }
+  .text-detail {
+    font-size: 8.5px;
+    fill: #5d6d7e;
+  }
+  .text-dimension {
+    font-size: 8px;
+    fill: #7f8c8d;
+    font-family: 'Courier New', monospace;
+  }
+  .equation {
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 10px;
+    fill: #1565c0;
+  }
+  .section-label {
+    font-size: 16px;
+    font-weight: 700;
+    fill: #1565c0;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>GraviLens-Swin: Detailed Component-Level Architecture</h1>
+  <p class="subtitle">Low-Level Implementation Details and Layer Specifications</p>
+  
+  <svg viewBox="0 0 1800 2600" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#2c3e50"/>
+      </marker>
+      <marker id="arrowhead-thin" markerWidth="6" markerHeight="6" refX="5" refY="2.5" orient="auto">
+        <polygon points="0 0, 6 2.5, 0 5" fill="#7f8c8d"/>
+      </marker>
+    </defs>
+
+    <!-- SECTION 1: Shifted Patch Tokenization -->
+    <text x="50" y="40" class="section-label">① Shifted Patch Tokenization Module</text>
+    <rect x="40" y="60" width="500" height="340" rx="6" stroke="#1565c0" stroke-width="2.5" fill="none" stroke-dasharray="8,4"/>
+    
+    <!-- Input image -->
+    <rect x="60" y="80" width="100" height="60" rx="4" class="layer-box"/>
+    <text x="110" y="102" class="text-title" text-anchor="middle">Input</text>
+    <text x="110" y="118" class="text-dimension" text-anchor="middle">B×1×64×64</text>
+    <text x="110" y="130" class="text-detail" text-anchor="middle">Grayscale</text>
+
+    <!-- Shift operations -->
+    <rect x="200" y="70" width="120" height="80" rx="4" class="conv-layer"/>
+    <text x="260" y="92" class="text-title" text-anchor="middle">5-way Split</text>
+    <text x="260" y="108" class="text-layer" text-anchor="middle">• Original</text>
+    <text x="260" y="120" class="text-layer" text-anchor="middle">• Shift ↖ (δx=-4, δy=-4)</text>
+    <text x="260" y="132" class="text-layer" text-anchor="middle">• Shift ↗ (δx=+4, δy=-4)</text>
+    <text x="260" y="144" class="text-layer" text-anchor="middle">• Shift ↙ (δx=-4, δy=+4)</text>
+
+    <path d="M 160 110 L 200 110" class="arrow"/>
+
+    <!-- Concatenation -->
+    <rect x="200" y="170" width="120" height="50" rx="4" class="layer-box"/>
+    <text x="260" y="192" class="text-title" text-anchor="middle">Concatenate</text>
+    <text x="260" y="208" class="text-dimension" text-anchor="middle">B×5×64×64</text>
+
+    <!-- Conv2d projection -->
+    <rect x="360" y="80" width="140" height="140" rx="4" class="conv-layer"/>
+    <text x="430" y="102" class="text-title" text-anchor="middle">Conv2d Projection</text>
+    <text x="430" y="120" class="text-layer" text-anchor="middle">in_channels: 5</text>
+    <text x="430" y="133" class="text-layer" text-anchor="middle">out_channels: 192</text>
+    <text x="430" y="146" class="text-layer" text-anchor="middle">kernel: 8×8</text>
+    <text x="430" y="159" class="text-layer" text-anchor="middle">stride: 8</text>
+    <text x="430" y="175" class="equation" text-anchor="middle">Output: 8×8=64 patches</text>
+    <text x="430" y="190" class="text-dimension" text-anchor="middle">B×192×8×8</text>
+    <text x="430" y="205" class="text-detail" text-anchor="middle">No bias (stability)</text>
+
+    <path d="M 320 195 L 360 140" class="arrow"/>
+
+    <!-- Flatten + LayerNorm -->
+    <rect x="360" y="240" width="140" height="70" rx="4" class="norm-layer"/>
+    <text x="430" y="260" class="text-title" text-anchor="middle">Flatten + LayerNorm</text>
+    <text x="430" y="278" class="text-dimension" text-anchor="middle">B×64×192</text>
+    <text x="430" y="293" class="text-detail" text-anchor="middle">ε=1e-5</text>
+
+    <path d="M 430 220 L 430 240" class="arrow"/>
+
+    <!-- Add CLS + Pos Encoding -->
+    <rect x="360" y="330" width="140" height="60" rx="4" class="layer-box"/>
+    <text x="430" y="350" class="text-title" text-anchor="middle">+ CLS Token</text>
+    <text x="430" y="366" class="text-title" text-anchor="middle">+ Pos Encoding</text>
+    <text x="430" y="380" class="text-dimension" text-anchor="middle">B×65×192</text>
+
+    <path d="M 430 310 L 430 330" class="arrow"/>
+
+    <!-- SECTION 2: Window Attention Details -->
+    <text x="600" y="40" class="section-label">② Window-Based Multi-Head Self-Attention</text>
+    <rect x="590" y="60" width="620" height="450" rx="6" stroke="#c2185b" stroke-width="2.5" fill="none" stroke-dasharray="8,4"/>
+
+    <!-- Input to attention -->
+    <rect x="610" y="80" width="120" height="50" rx="4" class="layer-box"/>
+    <text x="670" y="100" class="text-title" text-anchor="middle">Input Features</text>
+    <text x="670" y="116" class="text-dimension" text-anchor="middle">B'×W²×D</text>
+
+    <!-- Window partitioning -->
+    <rect x="610" y="150" width="120" height="70" rx="4" class="attention-layer"/>
+    <text x="670" y="172" class="text-title" text-anchor="middle">Window Partition</text>
+    <text x="670" y="188" class="text-layer" text-anchor="middle">Window size: 4×4</text>
+    <text x="670" y="202" class="text-detail" text-anchor="middle">Non-overlapping</text>
+    <text x="670" y="214" class="text-dimension" text-anchor="middle">nW×16×192</text>
+
+    <path d="M 670 130 L 670 150" class="arrow"/>
+
+    <!-- QKV projection -->
+    <rect x="780" y="150" width="140" height="70" rx="4" class="mlp-layer"/>
+    <text x="850" y="172" class="text-title" text-anchor="middle">Linear QKV</text>
+    <text x="850" y="188" class="text-layer" text-anchor="middle">192 → 576 (3×192)</text>
+    <text x="850" y="202" class="text-detail" text-anchor="middle">with bias</text>
+    <text x="850" y="214" class="text-dimension" text-anchor="middle">nW×16×576</text>
+
+    <path d="M 730 185 L 780 185" class="arrow"/>
+
+    <!-- Reshape to heads -->
+    <rect x="780" y="240" width="140" height="70" rx="4" class="layer-box"/>
+    <text x="850" y="260" class="text-title" text-anchor="middle">Reshape to Heads</text>
+    <text x="850" y="276" class="text-layer" text-anchor="middle">num_heads: 8</text>
+    <text x="850" y="288" class="text-layer" text-anchor="middle">head_dim: 24</text>
+    <text x="850" y="300" class="text-dimension" text-anchor="middle">3×nW×8×16×24</text>
+
+    <path d="M 850 220 L 850 240" class="arrow"/>
+
+    <!-- Split QKV -->
+    <rect x="960" y="180" width="110" height="40" rx="4" class="attention-layer"/>
+    <text x="1015" y="203" class="text-title" text-anchor="middle">Q</text>
+    <text x="1015" y="214" class="text-dimension" text-anchor="middle">nW×8×16×24</text>
+
+    <rect x="960" y="230" width="110" height="40" rx="4" class="attention-layer"/>
+    <text x="1015" y="253" class="text-title" text-anchor="middle">K</text>
+    <text x="1015" y="264" class="text-dimension" text-anchor="middle">nW×8×16×24</text>
+
+    <rect x="960" y="280" width="110" height="40" rx="4" class="attention-layer"/>
+    <text x="1015" y="303" class="text-title" text-anchor="middle">V</text>
+    <text x="1015" y="314" class="text-dimension" text-anchor="middle">nW×8×16×24</text>
+
+    <path d="M 920 200 L 960 200" class="thin-arrow"/>
+    <path d="M 920 250 L 960 250" class="thin-arrow"/>
+    <path d="M 920 300 L 960 300" class="thin-arrow"/>
+
+    <!-- Scaled dot-product -->
+    <rect x="960" y="340" width="110" height="70" rx="4" class="attention-layer"/>
+    <text x="1015" y="360" class="text-title" text-anchor="middle">Q @ K^T</text>
+    <text x="1015" y="376" class="equation" text-anchor="middle">× scale (1/√24)</text>
+    <text x="1015" y="388" class="text-layer" text-anchor="middle">+ Rel Pos Bias</text>
+    <text x="1015" y="400" class="text-dimension" text-anchor="middle">nW×8×16×16</text>
+
+    <path d="M 1015 220 L 1015 340" class="thin-arrow"/>
+    <path d="M 1015 270 L 1015 340" class="thin-arrow"/>
+
+    <!-- Relative Position Bias -->
+    <rect x="1110" y="340" width="90" height="70" rx="4" class="layer-box"/>
+    <text x="1155" y="360" class="text-layer" text-anchor="middle">Rel Pos Bias</text>
+    <text x="1155" y="375" class="text-layer" text-anchor="middle">Table:</text>
+    <text x="1155" y="387" class="text-detail" text-anchor="middle">(2W-1)²×H</text>
+    <text x="1155" y="400" class="text-detail" text-anchor="middle">49×8</text>
+
+    <path d="M 1070 375 L 1110 375" class="thin-arrow"/>
+
+    <!-- Softmax + Dropout -->
+    <rect x="960" y="430" width="110" height="50" rx="4" class="attention-layer"/>
+    <text x="1015" y="448" class="text-title" text-anchor="middle">Softmax</text>
+    <text x="1015" y="462" class="text-layer" text-anchor="middle">+ Dropout(0.1)</text>
+    <text x="1015" y="474" class="text-dimension" text-anchor="middle">Attn weights</text>
+
+    <path d="M 1015 410 L 1015 430" class="arrow"/>
+
+    <!-- Matmul with V -->
+    <rect x="810" y="430" width="110" height="50" rx="4" class="attention-layer"/>
+    <text x="865" y="448" class="text-title" text-anchor="middle">Attn @ V</text>
+    <text x="865" y="462" class="text-dimension" text-anchor="middle">nW×8×16×24</text>
+
+    <path d="M 960 455 L 920 455" class="arrow"/>
+    <path d="M 1015 320 L 1100 320 L 1100 455 L 920 455" class="thin-arrow"/>
+
+    <!-- Concat heads -->
+    <rect x="810" y="500" width="110" height="50" rx="4" class="layer-box"/>
+    <text x="865" y="518" class="text-title" text-anchor="middle">Concat Heads</text>
+    <text x="865" y="532" class="text-dimension" text-anchor="middle">nW×16×192</text>
+
+    <path d="M 865 480 L 865 500" class="arrow"/>
+
+    <!-- Output projection -->
+    <rect x="610" y="420" width="120" height="70" rx="4" class="mlp-layer"/>
+    <text x="670" y="440" class="text-title" text-anchor="middle">Linear Proj</text>
+    <text x="670" y="456" class="text-layer" text-anchor="middle">192 → 192</text>
+    <text x="670" y="468" class="text-layer" text-anchor="middle">+ Dropout(0.1)</text>
+    <text x="670" y="482" class="text-dimension" text-anchor="middle">nW×16×192</text>
+
+    <path d="M 810 525 L 730 490" class="arrow"/>
+
+    <!-- SECTION 3: SIE Parameter Predictor -->
+    <text x="1280" y="40" class="section-label">③ SIE Parameter Predictor</text>
+    <rect x="1270" y="60" width="490" height="450" rx="6" stroke="#1565c0" stroke-width="2.5" fill="none" stroke-dasharray="8,4"/>
+
+    <!-- Input features -->
+    <rect x="1290" y="80" width="140" height="50" rx="4" class="layer-box"/>
+    <text x="1360" y="100" class="text-title" text-anchor="middle">Transformer Output</text>
+    <text x="1360" y="116" class="text-dimension" text-anchor="middle">B×65×192</text>
+
+    <!-- Split branches -->
+    <rect x="1290" y="150" width="90" height="40" rx="4" class="physics-layer"/>
+    <text x="1335" y="173" class="text-layer" text-anchor="middle">CLS Token</text>
+    <text x="1335" y="184" class="text-dimension" text-anchor="middle">B×1×192</text>
+
+    <rect x="1420" y="150" width="90" height="40" rx="4" class="physics-layer"/>
+    <text x="1465" y="173" class="text-layer" text-anchor="middle">Patch Tokens</text>
+    <text x="1465" y="184" class="text-dimension" text-anchor="middle">B×64×192</text>
+
+    <path d="M 1360 130 L 1335 150" class="thin-arrow"/>
+    <path d="M 1360 130 L 1465 150" class="thin-arrow"/>
+
+    <!-- Global branch (left) -->
+    <text x="1335" y="215" class="text-title" text-anchor="middle" style="fill:#1565c0;">Global Branch</text>
+    
+    <rect x="1290" y="230" width="90" height="35" rx="3" class="mlp-layer"/>
+    <text x="1335" y="248" class="text-layer" text-anchor="middle">Linear 192→512</text>
+    <text x="1335" y="258" class="text-detail" text-anchor="middle">GELU + LN</text>
+
+    <rect x="1290" y="275" width="90" height="35" rx="3" class="mlp-layer"/>
+    <text x="1335" y="293" class="text-layer" text-anchor="middle">Linear 512→256</text>
+    <text x="1335" y="303" class="text-detail" text-anchor="middle">GELU + LN</text>
+
+    <rect x="1290" y="320" width="90" height="35" rx="3" class="mlp-layer"/>
+    <text x="1335" y="338" class="text-layer" text-anchor="middle">Linear 256→3</text>
+    <text x="1335" y="348" class="text-detail" text-anchor="middle">Sigmoid</text>
+
+    <path d="M 1335 190 L 1335 230" class="thin-arrow"/>
+    <path d="M 1335 265 L 1335 275" class="thin-arrow"/>
+    <path d="M 1335 310 L 1335 320" class="thin-arrow"/>
+
+    <rect x="1290" y="365" width="90" height="45" rx="3" class="physics-layer"/>
+    <text x="1335" y="380" class="text-layer" text-anchor="middle">Scale to Physics</text>
+    <text x="1335" y="392" class="equation" text-anchor="middle">k∈[0.8,1.2]</text>
+    <text x="1335" y="404" class="equation" text-anchor="middle">q∈[0.2,1.0]</text>
+
+    <path d="M 1335 355 L 1335 365" class="thin-arrow"/>
+
+    <!-- Spatial branch (right) -->
+    <text x="1590" y="215" class="text-title" text-anchor="middle" style="fill:#1565c0;">Spatial Branch</text>
+
+    <rect x="1545" y="230" width="90" height="35" rx="3" class="mlp-layer"/>
+    <text x="1590" y="248" class="text-layer" text-anchor="middle">Linear 192→256</text>
+    <text x="1590" y="258" class="text-detail" text-anchor="middle">GELU + LN</text>
+
+    <rect x="1545" y="275" width="90" height="35" rx="3" class="mlp-layer"/>
+    <text x="1590" y="293" class="text-layer" text-anchor="middle">Linear 256→128</text>
+    <text x="1590" y="303" class="text-detail" text-anchor="middle">GELU</text>
+
+    <rect x="1545" y="320" width="90" height="35" rx="3" class="mlp-layer"/>
+    <text x="1590" y="338" class="text-layer" text-anchor="middle">Linear 128→3</text>
+    <text x="1590" y="348" class="text-detail" text-anchor="middle">Tanh</text>
+
+    <path d="M 1465 190 L 1590 230" class="thin-arrow"/>
+    <path d="M 1590 265 L 1590 275" class="thin-arrow"/>
+    <path d="M 1590 310 L 1590 320" class="thin-arrow"/>
+
+    <rect x="1545" y="365" width="90" height="45" rx="3" class="physics-layer"/>
+    <text x="1590" y="380" class="text-layer" text-anchor="middle">Residuals</text>
+    <text x="1590" y="392" class="equation" text-anchor="middle">Δk, Δq, Δφ</text>
+    <text x="1590" y="404" class="text-detail" text-anchor="middle">×spatial_scale</text>
+
+    <path d="M 1590 355 L 1590 365" class="thin-arrow"/>
+
+    <!-- Upsample + Broadcast -->
+    <rect x="1545" y="420" width="90" height="40" rx="3" class="layer-box"/>
+    <text x="1590" y="437" class="text-layer" text-anchor="middle">Upsample 8×8</text>
+    <text x="1590" y="447" class="text-layer" text-anchor="middle">→ 64×64</text>
+    <text x="1590" y="455" class="text-detail" text-anchor="middle">Bilinear</text>
+
+    <path d="M 1590 410 L 1590 420" class="thin-arrow"/>
+
+    <!-- Combine -->
+    <rect x="1400" y="440" width="140" height="60" rx="4" class="physics-layer"/>
+    <text x="1470" y="460" class="text-title" text-anchor="middle">Combine</text>
+    <text x="1470" y="475" class="equation" text-anchor="middle">k(x,y) = k_g + Δk(x,y)</text>
+    <text x="1470" y="488" class="text-dimension" text-anchor="middle">B×3×64×64</text>
+
+    <path d="M 1335 410 L 1335 470 L 1400 470" class="thin-arrow"/>
+    <path d="M 1590 460 L 1540 470" class="thin-arrow"/>
+
+    <!-- SECTION 4: SIE Deflection Physics -->
+    <text x="50" y="560" class="section-label">④ SIE Deflection Physics Engine</text>
+    <rect x="40" y="580" width="800" height="500" rx="6" stroke="#1565c0" stroke-width="2.5" fill="none" stroke-dasharray="8,4"/>
+
+    <!-- Coordinate grid -->
+    <rect x="60" y="600" width="180" height="70" rx="4" class="physics-layer"/>
+    <text x="150" y="620" class="text-title" text-anchor="middle">Coordinate Grid</text>
+    <text x="150" y="635" class="equation" text-anchor="middle">θ = (x, y)</text>
+    <text x="150" y="650" class="text-detail" text-anchor="middle">64×64 positions</text>
+    <text x="150" y="662" class="text-detail" text-anchor="middle">pixel_scale = 0.05</text>
+
+    <!-- Parameter maps input -->
+    <rect x="60" y="690" width="180" height="70" rx="4" class="physics-layer"/>
+    <text x="150" y="710" class="text-title" text-anchor="middle">Parameter Maps</text>
+    <text x="150" y="725" class="equation" text-anchor="middle">k(x,y), q(x,y), φ(x,y)</text>
+    <text x="150" y="740" class="text-dimension" text-anchor="middle">B×3×64×64</text>
+    <text x="150" y="752" class="text-detail" text-anchor="middle">From predictor</text>
+
+    <!-- Rotation -->
+    <rect x="280" y="600" width="200" height="80" rx="4" class="physics-layer"/>
+    <text x="380" y="620" class="text-title" text-anchor="middle">Coordinate Rotation</text>
+    <text x="380" y="638" class="equation" text-anchor="middle">x' = x·cos(φ) - y·sin(φ)</text>
+    <text x="380" y="653" class="equation" text-anchor="middle">y' = x·sin(φ) + y·cos(φ)</text>
+    <text x="380" y="668" class="text-detail" text-anchor="middle">Align with lens axis</text>
+
+    <path d="M 240 635 L 280 640" class="arrow"/>
+    <path d="M 150 760 L 150 800 L 380 800 L 380 680" class="thin-arrow"/>
+
+    <!-- Elliptical case computation -->
+    <rect x="280" y="700" width="200" height="130" rx="4" class="physics-layer"/>
+    <text x="380" y="720" class="text-title" text-anchor="middle">Elliptical Deflection</text>
+    <text x="380" y="738" class="equation" text-anchor="middle">ψ = q²x'² + y'² + r_core²</text>
+    <text x="380" y="753" class="equation" text-anchor="middle">√(1-q²) = f</text>
+    <text x="380" y="770" class="equation" text-anchor="middle">α_x = (k/f)·atan(f·x'/√ψ)</text>
+    <text x="380" y="787" class="equation" text-anchor="middle">α_y = (k/f)·atanh(f·y'/√ψ)</text>
+    <text x="380" y="805" class="text-detail" text-anchor="middle">Gradient clipping: [-10,10]</text>
+    <text x="380" y="818" class="text-detail" text-anchor="middle">atanh: [-0.9999,0.9999]</text>
+
+    <!-- Circular case computation -->
+    <rect x="280" y="850" width="200" height="80" rx="4" class="physics-layer"/>
+    <text x="380" y="870" class="text-title" text-anchor="middle">Circular Case (q→1)</text>
+    <text x="380" y="888" class="equation" text-anchor="middle">r = √(x'² + y'² + r_core²)</text>
+    <text x="380" y="903" class="equation" text-anchor="middle">α_x = (k/r)·x'</text>
+    <text x="380" y="918" class="equation" text-anchor="middle">α_y = (k/r)·y'</text>
+
+    <!-- Smooth blending -->
+    <rect x="520" y="750" width="200" height="100" rx="4" class="physics-layer"/>
+    <text x="620" y="770" class="text-title" text-anchor="middle">Smooth Blending</text>
+    <text x="620" y="790" class="equation" text-anchor="middle">w = σ((q-0.995)×100)</text>
+    <text x="620" y="808" class="equation" text-anchor="middle">α = w·α_circ + (1-w)·α_ell</text>
+    <text x="620" y="823" class="text-detail" text-anchor="middle">Differentiable transition</text>
+    <text x="620" y="835" class="text-detail" text-anchor="middle">Avoids discontinuity</text>
+
+    <path d="M 480 765 L 520 780" class="arrow"/>
+    <path d="M 480 890 L 500 890 L 500 800 L 520 800" class="arrow"/>
+
+    <!-- Rotate back -->
+    <rect x="520" y="880" width="200" height="80" rx="4" class="physics-layer"/>
+    <text x="620" y="900" class="text-title" text-anchor="middle">Rotate Back</text>
+    <text x="620" y="918" class="equation" text-anchor="middle">α_x = α_x'·cos(φ) - α_y'·sin(φ)</text>
+    <text x="620" y="933" class="equation" text-anchor="middle">α_y = α_x'·sin(φ) + α_y'·cos(φ)</text>
+    <text x="620" y="948" class="text-detail" text-anchor="middle">Image frame coords</text>
+
+    <path d="M 620 850 L 620 880" class="arrow"/>
+
+    <!-- Output deflection -->
+    <rect x="540" y="990" width="160" height="70" rx="4" class="physics-layer"/>
+    <text x="620" y="1010" class="text-title" text-anchor="middle">Deflection Angles</text>
+    <text x="620" y="1028" class="equation" text-anchor="middle">α(θ) = [α_x(θ), α_y(θ)]</text>
+    <text x="620" y="1043" class="text-dimension" text-anchor="middle">B×2×64×64</text>
+
+    <path d="M 620 960 L 620 990" class="arrow"/>
+
+    <!-- SECTION 5: Ray Tracing -->
+    <text x="900" y="560" class="section-label">⑤ Differentiable Ray Tracing</text>
+    <rect x="890" y="580" width="870" height="320" rx="6" stroke="#00796b" stroke-width="2.5" fill="none" stroke-dasharray="8,4"/>
+
+    <!-- Source plane mapping -->
+    <rect x="910" y="600" width="200" height="90" rx="4" class="physics-layer"/>
+    <text x="1010" y="620" class="text-title" text-anchor="middle">Source Plane Map</text>
+    <text x="1010" y="640" class="equation" text-anchor="middle">β(θ) = θ - α(θ)</text>
+    <text x="1010" y="658" class="text-detail" text-anchor="middle">Lens equation</text>
+    <text x="1010" y="670" class="text-detail" text-anchor="middle">β = source position</text>
+    <text x="1010" y="682" class="text-dimension" text-anchor="middle">B×2×64×64</text>
+
+    <path d="M 700 1025 L 850 1025 L 850 645 L 910 645" class="arrow"/>
+
+    <!-- Normalize coordinates -->
+    <rect x="1140" y="600" width="200" height="90" rx="4" class="conv-layer"/>
+    <text x="1240" y="620" class="text-title" text-anchor="middle">Normalize to [-1,1]</text>
+    <text x="1240" y="640" class="equation" text-anchor="middle">β_norm = β / max_coord</text>
+    <text x="1240" y="658" class="text-detail" text-anchor="middle">For grid_sample</text>
+    <text x="1240" y="670" class="text-detail" text-anchor="middle">Clamp to [-1,1]</text>
+    <text x="1240" y="682" class="text-dimension" text-anchor="middle">B×2×64×64</text>
+
+    <path d="M 1110 645 L 1140 645" class="arrow"/>
+
+    <!-- Grid sample -->
+    <rect x="1380" y="600" width="200" height="90" rx="4" class="conv-layer"/>
+    <text x="1480" y="620" class="text-title" text-anchor="middle">grid_sample</text>
+    <text x="1480" y="638" class="equation" text-anchor="middle">I_corr = sample(I, β_norm)</text>
+    <text x="1480" y="656" class="text-detail" text-anchor="middle">mode: bilinear</text>
+    <text x="1480" y="668" class="text-detail" text-anchor="middle">padding: zeros</text>
+    <text x="1480" y="680" class="text-detail" text-anchor="middle">align_corners: True</text>
+
+    <path d="M 1340 645 L 1380 645" class="arrow"/>
+
+    <!-- Normalize intensity -->
+    <rect x="1620" y="600" width="120" height="90" rx="4" class="layer-box"/>
+    <text x="1680" y="620" class="text-title" text-anchor="middle">Normalize</text>
+    <text x="1680" y="638" class="equation" text-anchor="middle">I' = I / max(I)</text>
+    <text x="1680" y="656" class="text-detail" text-anchor="middle">Preserve flux</text>
+    <text x="1680" y="670" class="text-dimension" text-anchor="middle">B×64×64</text>
+
+    <path d="M 1580 645 L 1620 645" class="arrow"/>
+
+    <!-- Re-tokenize -->
+    <rect x="1380" y="730" width="200" height="80" rx="4" class="conv-layer"/>
+    <text x="1480" y="755" class="text-title" text-anchor="middle">Re-Tokenize</text>
+    <text x="1480" y="770" class="text-detail" text-anchor="middle">Same as initial</text>
+    <text x="1480" y="785" class="text-dimension" text-anchor="middle">B×65×192</text>
+
+    <path d="M 1680 690 L 1680 770 L 1580 770" class="arrow"/>
+
+    <!-- Re-tokenize output -->
+    <rect x="1620" y="820" width="120" height="60" rx="4" class="layer-box"/>
+    <text x="1680" y="843" class="text-layer" text-anchor="middle">Patches₂</text>
+    <text x="1680" y="858" class="text-detail" text-anchor="middle">Lens-corrected</text>
+
+    <path d="M 1480 810 L 1680 850" class="arrow"/>
+
+    <!-- SECTION 6: Classification -->
+    <text x="900" y="940" class="section-label">⑥ Cross-Attention Fusion + Classification</text>
+    <rect x="890" y="960" width="870" height="350" rx="6" stroke="#c2185b" stroke-width="2.5" fill="none" stroke-dasharray="8,4"/>
+
+    <!-- Cross-attention fusion -->
+    <rect x="1000" y="990" width="280" height="120" rx="4" class="attention-layer"/>
+    <text x="1140" y="1015" class="text-title" text-anchor="middle">Hierarchical Swin Stage</text>
+    <text x="1140" y="1031" class="text-title" text-anchor="middle">(Cross-Attention)</text>
+    <text x="1140" y="1050" class="text-layer" text-anchor="middle">Q = Patches₁ (original)</text>
+    <text x="1140" y="1065" class="text-layer" text-anchor="middle">K,V = Patches₂ (corrected)</text>
+    <text x="1140" y="1080" class="text-detail" text-anchor="middle">2 Swin blocks, W=4</text>
+    <text x="1140" y="1095" class="text-dimension" text-anchor="middle">Output: B×65×192</text>
+
+    <path d="M 1680 880 L 1680 1030 L 1280 1030" class="arrow"/>
+
+    <!-- Original patches -->
+    <rect x="910" y="1000" width="180" height="60" rx="4" class="layer-box"/>
+    <text x="1000" y="1023" class="text-layer" text-anchor="middle">Patches₁</text>
+    <text x="1000" y="1038" class="text-detail" text-anchor="middle">Original image</text>
+
+    <path d="M 1090 1030 L 1000 1050" class="arrow"/>
+
+    <!-- Flatten -->
+    <rect x="1000" y="1140" width="280" height="50" rx="4" class="mlp-layer"/>
+    <text x="1140" y="1160" class="text-title" text-anchor="middle">Flatten</text>
+    <text x="1140" y="1178" class="text-dimension" text-anchor="middle">B×12480</text>
+
+    <path d="M 1140 1110 L 1140 1140" class="arrow"/>
+
+    <!-- FFN Classification Head -->
+    <rect x="1320" y="1080" width="180" height="160" rx="4" class="mlp-layer"/>
+    <text x="1410" y="1100" class="text-title" text-anchor="middle">FeedForward Net</text>
+    <text x="1410" y="1120" class="text-layer" text-anchor="middle">Linear: 12480→32</text>
+    <text x="1410" y="1135" class="text-layer" text-anchor="middle">GELU + Dropout</text>
+    <text x="1410" y="1152" class="text-layer" text-anchor="middle">Linear: 32→32 (×3)</text>
+    <text x="1410" y="1167" class="text-layer" text-anchor="middle">GELU + Dropout</text>
+    <text x="1410" y="1184" class="text-layer" text-anchor="middle">Linear: 32→2</text>
+    <text x="1410" y="1199" class="text-layer" text-anchor="middle">Softmax</text>
+    <text x="1410" y="1218" class="text-detail" text-anchor="middle">Binary classification</text>
+
+    <path d="M 1280 1165 L 1320 1160" class="arrow"/>
+
+    <!-- Output predictions -->
+    <rect x="1540" y="1110" width="180" height="80" rx="4" class="layer-box"/>
+    <text x="1630" y="1135" class="text-title" text-anchor="middle">Predictions</text>
+    <text x="1630" y="1153" class="text-dimension" text-anchor="middle">B×2</text>
+    <text x="1630" y="1168" class="text-detail" text-anchor="middle">Class 0: No lens</text>
+    <text x="1630" y="1180" class="text-detail" text-anchor="middle">Class 1: Lensed</text>
+
+    <path d="M 1500 1160 L 1540 1150" class="arrow"/>
+
+    <!-- SECTION 7: Training Components -->
+    <text x="50" y="1350" class="section-label">⑦ Training Stability Components</text>
+    <rect x="40" y="1370" width="1720" height="340" rx="6" stroke="#f57c00" stroke-width="2.5" fill="none" stroke-dasharray="8,4"/>
+
+    <!-- Optimizer -->
+    <rect x="60" y="1390" width="240" height="110" rx="4" class="mlp-layer"/>
+    <text x="180" y="1410" class="text-title" text-anchor="middle">Optimizer</text>
+    <text x="180" y="1428" class="text-layer" text-anchor="middle">Base: AdamW</text>
+    <text x="180" y="1442" class="text-detail" text-anchor="middle">lr=2e-4, wd=1e-5</text>
+    <text x="180" y="1454" class="text-detail" text-anchor="middle">β=(0.9,0.999)</text>
+    <text x="180" y="1469" class="text-layer" text-anchor="middle">Wrapper: Lookahead</text>
+    <text x="180" y="1483" class="text-detail" text-anchor="middle">k=5, α=0.5</text>
+
+    <!-- Scheduler -->
+    <rect x="320" y="1390" width="240" height="110" rx="4" class="mlp-layer"/>
+    <text x="440" y="1410" class="text-title" text-anchor="middle">LR Scheduler</text>
+    <text x="440" y="1428" class="text-layer" text-anchor="middle">Warmup + Cosine</text>
+    <text x="440" y="1442" class="text-detail" text-anchor="middle">Warmup: 10 epochs</text>
+    <text x="440" y="1454" class="text-detail" text-anchor="middle">Max: 2e-4, Min: 1e-6</text>
+    <text x="440" y="1469" class="equation" text-anchor="middle">lr∝cos(πt)</text>
+
+    <!-- Gradient handling -->
+    <rect x="580" y="1390" width="240" height="110" rx="4" class="mlp-layer"/>
+    <text x="700" y="1410" class="text-title" text-anchor="middle">Gradient Control</text>
+    <text x="700" y="1428" class="text-layer" text-anchor="middle">Accumulation: 4</text>
+    <text x="700" y="1442" class="text-detail" text-anchor="middle">Effective BS=256</text>
+    <text x="700" y="1457" class="text-layer" text-anchor="middle">Adaptive Clip</text>
+    <text x="700" y="1471" class="text-detail" text-anchor="middle">max=0.01×‖θ‖</text>
+
+    <!-- EMA -->
+    <rect x="840" y="1390" width="240" height="110" rx="4" class="mlp-layer"/>
+    <text x="960" y="1410" class="text-title" text-anchor="middle">Model EMA</text>
+    <text x="960" y="1428" class="text-layer" text-anchor="middle">decay = 0.9999</text>
+    <text x="960" y="1445" class="equation" text-anchor="middle">θ_ema = 0.9999θ_ema</text>
+    <text x="960" y="1457" class="equation" text-anchor="middle">+ 0.0001θ</text>
+
+    <!-- Loss function -->
+    <rect x="1100" y="1390" width="240" height="110" rx="4" class="mlp-layer"/>
+    <text x="1220" y="1410" class="text-title" text-anchor="middle">Loss Function</text>
+    <text x="1220" y="1428" class="text-layer" text-anchor="middle">Label Smooth CE</text>
+    <text x="1220" y="1442" class="text-detail" text-anchor="middle">smoothing=0.0</text>
+    <text x="1220" y="1457" class="equation" text-anchor="middle">L=-Σp·log(q)</text>
+
+    <!-- Early stopping -->
+    <rect x="1360" y="1390" width="240" height="110" rx="4" class="mlp-layer"/>
+    <text x="1480" y="1410" class="text-title" text-anchor="middle">Early Stopping</text>
+    <text x="1480" y="1428" class="text-layer" text-anchor="middle">patience=30</text>
+    <text x="1480" y="1442" class="text-detail" text-anchor="middle">min_delta=1e-4</text>
+    <text x="1480" y="1457" class="text-layer" text-anchor="middle">Monitor: Val Loss</text>
+
+    <!-- Augmentation -->
+    <rect x="1620" y="1390" width="130" height="110" rx="4" class="mlp-layer"/>
+    <text x="1685" y="1408" class="text-title" text-anchor="middle">Progressive</text>
+    <text x="1685" y="1423" class="text-title" text-anchor="middle">Augmentation</text>
+    <text x="1685" y="1440" class="text-layer" text-anchor="middle">• H/V Flip</text>
+    <text x="1685" y="1453" class="text-layer" text-anchor="middle">• Rotation</text>
+    <text x="1685" y="1466" class="text-detail" text-anchor="middle">±15° max</text>
+
+    <!-- Bottom row -->
+    <rect x="60" y="1530" width="240" height="60" rx="4" class="mlp-layer"/>
+    <text x="180" y="1550" class="text-title" text-anchor="middle">Mixed Precision</text>
+    <text x="180" y="1565" class="text-detail" text-anchor="middle">GradScaler AMP</text>
+    <text x="180" y="1577" class="text-detail" text-anchor="middle">FP16/FP32</text>
+
+    <rect x="320" y="1530" width="240" height="60" rx="4" class="mlp-layer"/>
+    <text x="440" y="1550" class="text-title" text-anchor="middle">Checkpointing</text>
+    <text x="440" y="1565" class="text-detail" text-anchor="middle">Full + weights-only</text>
+    <text x="440" y="1577" class="text-detail" text-anchor="middle">Best model tracking</text>
+
+    <rect x="580" y="1530" width="240" height="60" rx="4" class="mlp-layer"/>
+    <text x="700" y="1550" class="text-title" text-anchor="middle">Dataset Split</text>
+    <text x="700" y="1565" class="text-detail" text-anchor="middle">Train: 7000 samples</text>
+    <text x="700" y="1577" class="text-detail" text-anchor="middle">Val/Test: 1500 each</text>
+
+    <!-- Performance Box -->
+    <rect x="880" y="1390" width="870" height="300" rx="5" fill="#f0f8ff" stroke="#1565c0" stroke-width="2"/>
+    <text x="1315" y="1420" class="text-title" text-anchor="middle" style="font-size: 15px; fill:#1565c0;">
+      Final Performance Metrics
+    </text>
+
+    <!-- Results table -->
+    <text x="920" y="1460" class="text-layer" font-weight="600">Training Results (Epoch 57):</text>
+    <text x="920" y="1480" class="text-detail">• Training stopped early (patience exceeded)</text>
+    <text x="920" y="1495" class="text-detail">• Best Val Loss: 0.6925 (epoch 17)</text>
+    <text x="920" y="1510" class="text-detail">• Final Val Loss: 0.6951</text>
+    <text x="920" y="1525" class="text-detail">• Final Val F1: 0.5136</text>
+    <text x="920" y="1540" class="text-detail">• Final Val Accuracy: 0.5167</text>
+
+    <text x="920" y="1570" class="text-layer" font-weight="600">Test Set Performance:</text>
+    <text x="920" y="1590" class="text-detail">• Test Loss: 0.6973</text>
+    <text x="920" y="1605" class="text-detail">• Test F1: 0.4998</text>
+    <text x="920" y="1620" class="text-detail">• Test Accuracy: 0.5020</text>
+    <text x="920" y="1635" class="text-detail">• Class 0 Precision: 0.5018</text>
+    <text x="920" y="1650" class="text-detail">• Class 1 Precision: 0.5023</text>
+
+    <text x="1380" y="1460" class="text-layer" font-weight="600">Model Specifications:</text>
+    <text x="1380" y="1480" class="text-detail">• Total Parameters: 2.65M</text>
+    <text x="1380" y="1495" class="text-detail">• Embedding Dimension: 192</text>
+    <text x="1380" y="1510" class="text-detail">• Attention Heads: 8</text>
+    <text x="1380" y="1525" class="text-detail">• Swin Blocks: 2 per stage</text>
+    <text x="1380" y="1540" class="text-detail">• Window Size: 4×4</text>
+
+    <text x="1380" y="1570" class="text-layer" font-weight="600">Key Innovations:</text>
+    <text x="1380" y="1590" class="text-detail">✓ Physics-guided lens correction</text>
+    <text x="1380" y="1605" class="text-detail">✓ Spatially-varying SIE params</text>
+    <text x="1380" y="1620" class="text-detail">✓ Differentiable ray tracing</text>
+    <text x="1380" y="1635" class="text-detail">✓ Dual-path cross-attention</text>
+    <text x="1380" y="1650" class="text-detail">✓ Stable gradient flow</text>
+
+    <!-- Footer -->
+    <text x="900" y="1750" class="text-detail" text-anchor="middle" style="font-size: 9px; fill: #7f8c8d;">
+      GraviLens-Swin v2.03 | Physics-Informed Vision Transformer for Gravitational Lensing Detection
+    </text>
+    <text x="900" y="1770" class="text-detail" text-anchor="middle" style="font-size: 8px; fill: #95a5a6;">
+      Combines Swin Transformer architecture with Singular Isothermal Ellipsoid (SIE) deflection physics
+    </text>
+
+    <!-- SECTION 8: Mathematical Foundations -->
+    <text x="50" y="1810" class="section-label">⑧ Mathematical Foundations</text>
+    <rect x="40" y="1830" width="1720" height="280" rx="6" stroke="#7b1fa2" stroke-width="2.5" fill="none" stroke-dasharray="8,4"/>
+
+    <!-- Einstein Deflection -->
+    <rect x="60" y="1850" width="320" height="130" rx="4" class="physics-layer"/>
+    <text x="220" y="1870" class="text-title" text-anchor="middle">Einstein Deflection Angle</text>
+    <text x="220" y="1895" class="equation" text-anchor="middle">For elliptical mass distribution:</text>
+    <text x="220" y="1915" class="equation" text-anchor="middle">α_x = (k/√(1-q²)) · arctan((√(1-q²)·x')/√ψ)</text>
+    <text x="220" y="1935" class="equation" text-anchor="middle">α_y = (k/√(1-q²)) · arctanh((√(1-q²)·y')/√ψ)</text>
+    <text x="220" y="1955" class="equation" text-anchor="middle">ψ = q²x'² + y'² + r²_core</text>
+    <text x="220" y="1970" class="text-detail" text-anchor="middle">k: Einstein radius, q: axis ratio, φ: position angle</text>
+
+    <!-- Lens Equation -->
+    <rect x="410" y="1850" width="320" height="130" rx="4" class="physics-layer"/>
+    <text x="570" y="1870" class="text-title" text-anchor="middle">Gravitational Lens Equation</text>
+    <text x="570" y="1895" class="equation" text-anchor="middle">β = θ - α(θ)</text>
+    <text x="570" y="1915" class="text-detail" text-anchor="middle">β: source position (unlensed)</text>
+    <text x="570" y="1930" class="text-detail" text-anchor="middle">θ: image position (observed)</text>
+    <text x="570" y="1945" class="text-detail" text-anchor="middle">α: deflection angle (from mass)</text>
+    <text x="570" y="1965" class="text-layer" text-anchor="middle">Our model inverts: θ → α → β</text>
+
+    <!-- Attention Mechanism -->
+    <rect x="760" y="1850" width="320" height="130" rx="4" class="attention-layer"/>
+    <text x="920" y="1870" class="text-title" text-anchor="middle">Window-Based Attention</text>
+    <text x="920" y="1895" class="equation" text-anchor="middle">Attention(Q,K,V) = softmax(QK^T/√d_k + B)V</text>
+    <text x="920" y="1915" class="text-detail" text-anchor="middle">B: Relative position bias</text>
+    <text x="920" y="1930" class="equation" text-anchor="middle">B ∈ ℝ^((2M-1)²×H)</text>
+    <text x="920" y="1950" class="text-layer" text-anchor="middle">Shifted windows for global receptive field:</text>
+    <text x="920" y="1965" class="text-detail" text-anchor="middle">Even layers: no shift | Odd layers: shift by W/2</text>
+
+    <!-- Cross-Attention Fusion -->
+    <rect x="1110" y="1850" width="320" height="130" rx="4" class="attention-layer"/>
+    <text x="1270" y="1870" class="text-title" text-anchor="middle">Cross-Attention Fusion</text>
+    <text x="1270" y="1895" class="equation" text-anchor="middle">Q = Tokenize(I_original)</text>
+    <text x="1270" y="1915" class="equation" text-anchor="middle">K,V = Tokenize(I_corrected)</text>
+    <text x="1270" y="1935" class="equation" text-anchor="middle">Output = Attention(Q, K, V)</text>
+    <text x="1270" y="1955" class="text-layer" text-anchor="middle">Original features query corrected features</text>
+    <text x="1270" y="1970" class="text-detail" text-anchor="middle">Enables physics-guided classification</text>
+
+    <!-- Loss Function -->
+    <rect x="1460" y="1850" width="280" height="130" rx="4" class="mlp-layer"/>
+    <text x="1600" y="1870" class="text-title" text-anchor="middle">Label Smoothing CE Loss</text>
+    <text x="1600" y="1895" class="equation" text-anchor="middle">L = -Σ_i p'_i · log(q_i)</text>
+    <text x="1600" y="1915" class="text-detail" text-anchor="middle">where:</text>
+    <text x="1600" y="1930" class="equation" text-anchor="middle">p'_i = (1-ε)p_i + ε/K</text>
+    <text x="1600" y="1950" class="text-detail" text-anchor="middle">ε: smoothing factor (0.0 in final)</text>
+    <text x="1600" y="1965" class="text-detail" text-anchor="middle">K: number of classes (2)</text>
+
+    <!-- SECTION 9: Data Flow Summary -->
+    <text x="50" y="2170" class="section-label">⑨ End-to-End Data Flow Summary</text>
+    <rect x="40" y="2190" width="1720" height="380" rx="6" stroke="#00796b" stroke-width="2.5" fill="none" stroke-dasharray="8,4"/>
+
+    <!-- Flow diagram -->
+    <text x="900" y="2220" class="text-title" text-anchor="middle" style="font-size: 14px;">Complete Forward Pass Pipeline</text>
+
+    <!-- Stage indicators -->
+    <rect x="80" y="2250" width="150" height="50" rx="4" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+    <text x="155" y="2275" class="text-layer" text-anchor="middle" font-weight="600">Input</text>
+    <text x="155" y="2288" class="text-dimension" text-anchor="middle">64×64×1</text>
+    
+    <path d="M 230 2275 L 270 2275" class="arrow"/>
+    <text x="250" y="2265" class="text-detail" text-anchor="middle">①</text>
+
+    <rect x="270" y="2250" width="150" height="50" rx="4" fill="#fff3e0" stroke="#f57c00" stroke-width="2"/>
+    <text x="345" y="2272" class="text-layer" text-anchor="middle" font-weight="600">Tokenize₁</text>
+    <text x="345" y="2288" class="text-dimension" text-anchor="middle">65×192</text>
+
+    <path d="M 420 2275 L 460 2275" class="arrow"/>
+    <text x="440" y="2265" class="text-detail" text-anchor="middle">②</text>
+
+    <rect x="460" y="2250" width="150" height="50" rx="4" fill="#fce4ec" stroke="#c2185b" stroke-width="2"/>
+    <text x="535" y="2272" class="text-layer" text-anchor="middle" font-weight="600">Swin Trans</text>
+    <text x="535" y="2288" class="text-dimension" text-anchor="middle">65×192</text>
+
+    <path d="M 610 2275 L 650 2275" class="arrow"/>
+    <text x="630" y="2265" class="text-detail" text-anchor="middle">③</text>
+
+    <rect x="650" y="2250" width="150" height="50" rx="4" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+    <text x="725" y="2272" class="text-layer" text-anchor="middle" font-weight="600">SIE Predict</text>
+    <text x="725" y="2288" class="text-dimension" text-anchor="middle">3×64×64</text>
+
+    <path d="M 800 2275 L 840 2275" class="arrow"/>
+    <text x="820" y="2265" class="text-detail" text-anchor="middle">④</text>
+
+    <rect x="840" y="2250" width="150" height="50" rx="4" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+    <text x="915" y="2272" class="text-layer" text-anchor="middle" font-weight="600">Deflection</text>
+    <text x="915" y="2288" class="text-dimension" text-anchor="middle">2×64×64</text>
+
+    <path d="M 990 2275 L 1030 2275" class="arrow"/>
+    <text x="1010" y="2265" class="text-detail" text-anchor="middle">⑤</text>
+
+    <rect x="1030" y="2250" width="150" height="50" rx="4" fill="#e0f2f1" stroke="#00796b" stroke-width="2"/>
+    <text x="1105" y="2272" class="text-layer" text-anchor="middle" font-weight="600">Ray Trace</text>
+    <text x="1105" y="2288" class="text-dimension" text-anchor="middle">64×64</text>
+
+    <path d="M 1180 2275 L 1220 2275" class="arrow"/>
+    <text x="1200" y="2265" class="text-detail" text-anchor="middle">⑥</text>
+
+    <rect x="1220" y="2250" width="150" height="50" rx="4" fill="#fff3e0" stroke="#f57c00" stroke-width="2"/>
+    <text x="1295" y="2272" class="text-layer" text-anchor="middle" font-weight="600">Tokenize₂</text>
+    <text x="1295" y="2288" class="text-dimension" text-anchor="middle">65×192</text>
+
+    <path d="M 1370 2275 L 1410 2275" class="arrow"/>
+    <text x="1390" y="2265" class="text-detail" text-anchor="middle">⑦</text>
+
+    <rect x="1410" y="2250" width="150" height="50" rx="4" fill="#fce4ec" stroke="#c2185b" stroke-width="2"/>
+    <text x="1485" y="2272" class="text-layer" text-anchor="middle" font-weight="600">Cross-Attn</text>
+    <text x="1485" y="2288" class="text-dimension" text-anchor="middle">65×192</text>
+
+    <path d="M 1560 2275 L 1600 2275" class="arrow"/>
+    <text x="1580" y="2265" class="text-detail" text-anchor="middle">⑧</text>
+
+    <rect x="1600" y="2250" width="140" height="50" rx="4" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+    <text x="1670" y="2272" class="text-layer" text-anchor="middle" font-weight="600">Classify</text>
+    <text x="1670" y="2288" class="text-dimension" text-anchor="middle">2 classes</text>
+
+    <!-- Parallel path for original features -->
+    <path d="M 420 2275 L 420 2350 L 1485 2350 L 1485 2300" stroke="#7f8c8d" stroke-width="1.5" fill="none" marker-end="url(#arrowhead-thin)"/>
+    <text x="900" y="2370" class="text-detail" text-anchor="middle" style="fill:#7f8c8d;">Original features (Query path)</text>
+
+    <!-- Key advantages box -->
+    <rect x="80" y="2420" width="820" height="130" rx="5" fill="#f0f8ff" stroke="#1565c0" stroke-width="2"/>
+    <text x="490" y="2445" class="text-title" text-anchor="middle" style="font-size: 13px; fill:#1565c0;">
+      Architectural Advantages
+    </text>
+    <text x="100" y="2470" class="text-layer">✓ <tspan font-weight="600">Physics Integration:</tspan> Differentiable SIE deflection enables end-to-end training</text>
+    <text x="100" y="2487" class="text-layer">✓ <tspan font-weight="600">Dual-Path Processing:</tspan> Original + corrected features → robust to lens artifacts</text>
+    <text x="100" y="2504" class="text-layer">✓ <tspan font-weight="600">Hierarchical Attention:</tspan> Swin windows capture local + global structure</text>
+    <text x="100" y="2521" class="text-layer">✓ <tspan font-weight="600">Spatial Awareness:</tspan> Position-varying lens params model realistic systems</text>
+    <text x="100" y="2538" class="text-layer">✓ <tspan font-weight="600">Training Stability:</tspan> EMA, Lookahead, adaptive clipping, warmup scheduling</text>
+
+    <!-- Computational complexity -->
+    <rect x="920" y="2420" width="820" height="130" rx="5" fill="#fff3e0" stroke="#f57c00" stroke-width="2"/>
+    <text x="1330" y="2445" class="text-title" text-anchor="middle" style="font-size: 13px; fill:#f57c00;">
+      Computational Complexity
+    </text>
+    <text x="940" y="2470" class="text-layer"><tspan font-weight="600">Window Attention:</tspan> O(N·M²) vs O(N²) for full attention</text>
+    <text x="940" y="2487" class="text-detail">  • N = number of patches (64), M = window size (16 pixels)</text>
+    <text x="940" y="2504" class="text-layer"><tspan font-weight="600">SIE Physics:</tspan> O(B·H·W) per forward pass</text>
+    <text x="940" y="2521" class="text-detail">  • Fully parallelizable on GPU</text>
+    <text x="940" y="2538" class="text-layer"><tspan font-weight="600">Total FLOPs:</tspan> ~2.8 GFLOPs per image (64×64)</text>
+
+    <!-- Final footer -->
+    <text x="900" y="2585" class="text-title" text-anchor="middle" style="font-size: 11px; fill: #2c3e50;">
+      © 2025 Dean Mark Catiil | GraviLens-Swin Architecture
+    </text>
+  </svg>
+</div>
+</body>
+</html>

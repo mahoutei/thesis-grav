@@ -1,0 +1,127 @@
+% main.tex - Main thesis document
+\documentclass[12pt,a4paper,oneside]{report}
+
+% Essential packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{cite}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+% Caption formatting
+\captionsetup{font=small, labelfont=bf, margin=10pt}
+
+% Page geometry
+\geometry{
+    left=1in,
+    right=1in,
+    top=1in,
+    bottom=1in
+}
+
+% Graphics path
+\graphicspath{{figures/}}
+
+% Line spacing
+\doublespacing
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+% Chapter formatting
+\titleformat{\chapter}[display]
+{\normalfont\normalsize\bfseries\centering}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{40pt}
+
+% Section formatting - FIXED: Remove [\indent] and use \titlespacing instead
+\titleformat{\section}
+  {\normalfont\small\bfseries}
+  {\thesection}
+  {1em}
+  {}
+% Let indentfirst handle indentation after section
+\titlespacing{\section}
+  {0pt}        % left margin
+  {3.5ex plus 1ex minus .2ex}  % space before
+  {2.3ex plus .2ex}             % space after
+
+% Subsection formatting
+\titleformat{\subsection}
+  {\normalfont\footnotesize\bfseries}
+  {\thesubsection}
+  {1em}
+  {}
+% Let indentfirst handle indentation after subsection
+\titlespacing{\subsection}
+  {0pt}        % left margin
+  {3.25ex plus 1ex minus .2ex}  % space before
+  {1.5ex plus .2ex}              % space after
+
+% Subsubsection formatting
+\titleformat{\subsubsection}
+  {\normalfont\scriptsize\bfseries}
+  {\thesubsubsection}
+  {1em}
+  {}
+% Let indentfirst handle indentation after subsubsection
+\titlespacing{\subsubsection}
+  {0pt}        % left margin
+  {3.25ex plus 1ex minus .2ex}  % space before
+  {1.5ex plus .2ex}              % space after
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=blue,
+    urlcolor=blue,
+    pdftitle={GRAVILENS: A Physics-Informed Swin Vision Transformer},
+    pdfauthor={Dean Mark H. Catiil}
+}
+
+% Custom commands
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+
+\begin{document}
+
+% Front matter
+\input{frontmatter/titlepage}
+\input{frontmatter/abstract}
+\input{frontmatter/acknowledgments}
+\input{frontmatter/dedication}
+
+% Table of contents
+\tableofcontents
+\listoffigures
+\listoftables
+
+% Main chapters
+\input{chapters/chapter1}
+\input{chapters/chapter2}
+\input{chapters/chapter3}
+\input{chapters/chapter4}
+\input{chapters/chapter5}
+\input{chapters/chapter6}
+
+% Bibliography
+\bibliographystyle{plain}
+\bibliography{references/bibliography}
+
+% Appendices
+\appendix
+\input{appendices/appendixA}
+\input{appendices/appendixB}
+
+\end{document}

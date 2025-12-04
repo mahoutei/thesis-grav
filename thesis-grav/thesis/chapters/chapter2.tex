@@ -1,0 +1,145 @@
+% =============================================================================
+% FILE: chapters/chapter2.tex
+% DESCRIPTION: Review of Related Literature
+% =============================================================================
+
+\chapter{REVIEW OF RELATED LITERATURE}
+
+\section{Gravitational Lensing Theory}
+
+\subsection{General Relativistic Framework}
+
+The deflection of light by gravitational fields represents one of the cornerstone predictions of Einstein's general relativity. In the weak-field limit appropriate for most astrophysical lensing scenarios, spacetime curvature induces a deflection angle for photons passing near a massive object. For a point mass $M$, the deflection angle at impact parameter $b$ is given by (Schneider et al., 1992):
+$$\hat{\alpha} = \frac{4GM}{c^2 b}$$
+This expression, first derived by Einstein (1915) and observationally confirmed by Eddington et al. (1920) during the 1919 solar eclipse, forms the basis of gravitational lensing theory.
+In the thin-lens approximation, valid when the physical extent of the lens is much smaller than the relevant distance scales, the lensing geometry reduces to a two-dimensional problem (Schneider et al., 1992). The fundamental lens equation relates the true source position $\boldsymbol{\beta}$ to the observed image position $\boldsymbol{\theta}$ through the scaled deflection angle $\boldsymbol{\alpha}(\boldsymbol{\theta})$:
+$$\boldsymbol{\beta} = \boldsymbol{\theta} - \frac{D_{LS}}{D_S}\hat{\boldsymbol{\alpha}}(D_L\boldsymbol{\theta}) \equiv \boldsymbol{\theta} - \boldsymbol{\alpha}(\boldsymbol{\theta})$$
+where $D_L$, $D_S$, and $D_{LS}$ denote the angular-diameter distances to the lens, source, and between lens and source, respectively. The reduced deflection angle $\boldsymbol{\alpha}$ incorporates the cosmological distance ratios, mapping positions in the lens plane to positions in the source plane.
+
+\subsection{The Lensing Potential and Critical Curves}
+
+The deflection field can be expressed as the gradient of a two-dimensional effective lensing potential $\psi(\boldsymbol{\theta})$ (Schneider et al., 1992):
+$$\boldsymbol{\alpha}(\boldsymbol{\theta}) = \nabla\psi(\boldsymbol{\theta})$$
+where the potential relates to the three-dimensional mass distribution through a projection along the line of sight. The convergence $\kappa(\boldsymbol{\theta})$, representing the dimensionless surface mass density, is given by half the Laplacian of the potential:
+$$\kappa(\boldsymbol{\theta}) = \frac{1}{2}\nabla^2\psi(\boldsymbol{\theta}) = \frac{\Sigma(\boldsymbol{\theta})}{\Sigma_{crit}}$$
+Here $\Sigma_{crit} = (c^2/4\pi G)(D_S/D_L D_{LS})$ is the critical surface density. The magnification and distortion properties are encoded in the Jacobian matrix of the lens mapping:
+$$\mathcal{A}(\boldsymbol{\theta}) = \frac{\partial\boldsymbol{\beta}}{\partial\boldsymbol{\theta}} = \left(\begin{matrix} 1-\kappa-\gamma_1 & -\gamma_2 \\ -\gamma_2 & 1-\kappa+\gamma_1 \end{matrix}\right)$$
+where $\gamma_1$ and $\gamma_2$ are components of the shear tensor (Bartelmann \& Schneider, 2001). Critical curves occur where $\det(\mathcal{A}) = 0$, corresponding to infinite magnification. Their counterparts in the source plane (caustics) delineate regions where multiple imaging occurs.
+Strong gravitational lensing manifests when background sources lie near caustics, producing highly magnified and distorted images. The most symmetric configuration yields Einstein rings, circular arcs with characteristic angular radius (Schneider et al., 1992):
+$$\theta_E = \sqrt{\frac{4GM}{c^2}\frac{D_{LS}}{D_L D_S}}$$
+Observational examples include the "Cosmic Horseshoe" (Belokurov et al., 2007) and numerous galaxy-scale lenses discovered in large-area surveys (Bolton et al., 2008; Brownstein et al., 2012). These systems provide unique laboratories for testing lens models and measuring mass distributions with minimal assumptions about luminous tracers.
+
+\subsection{The Singular Isothermal Ellipsoid Profile}
+
+A widely adopted parametric lens model is the Singular Isothermal Ellipsoid (SIE), which assumes a three-dimensional density profile $\rho(r) \propto r^{-2}$ (Kormann et al., 1994). This profile arises naturally in systems with constant circular velocity and describes many observed galaxy lenses to first approximation (Koopmans et al., 2006).
+For the spherically symmetric case (Singular Isothermal Sphere), the deflection angle simplifies to:
+$$\alpha(\theta) = \theta_E$$
+independent of radius, where $\theta_E = 4\pi(\sigma_v/c)^2(D_{LS}/D_S)$ relates to the one-dimensional velocity dispersion $\sigma_v$ (Schneider et al., 1992).
+The elliptical generalization introduces an axis ratio $q$ and position angle $\phi$ (Kormann et al., 1994; Keeton and Kochanek, 1998). In elliptical coordinates, the deflection components become:
+$$\alpha_x(\boldsymbol{\theta}) = \frac{\theta_E}{\sqrt{1-q^2}}\arctan\left(\frac{\sqrt{1-q^2}x'}{\sqrt{q^2 x'^2 + y'^2}}\right)$$
+$$\alpha_y(\boldsymbol{\theta}) = \frac{\theta_E}{\sqrt{1-q^2}}\text{arctanh}\left(\frac{\sqrt{1-q^2}y'}{\sqrt{q^2 x'^2 + y'^2}}\right)$$
+where $(x', y')$ are coordinates rotated by angle $\phi$ relative to the lens center. These expressions are well-documented in Keeton (2001) and have been extensively validated against observations (Treu \& Koopmans, 2004; Koopmans et al., 2006).
+
+\subsection{Cosmological Applications and Observational Challenges}
+
+Gravitational lensing serves as a powerful astrophysical tool precisely because it depends only on the total projected mass, making no distinction between luminous and dark matter (Bartelmann and Schneider, 2001). Strong lensing observations enable: (1) precise mass measurements within Einstein radii (Koopmans et al., 2006); (2) constraints on dark matter substructure through flux-ratio anomalies (Dalal \& Kochanek, 2002); (3) measurements of the Hubble constant via time-delay cosmography (Suyu et al., 2010; Wong et al., 2020); and (4) tests of alternative gravity theories (Collett et al., 2018).
+
+However, extracting these constraints requires solving the inverse problem: given observed lensed images, infer the lens mass distribution and source properties. Traditional approaches employ Bayesian inference with Markov Chain Monte Carlo (MCMC) sampling to explore parameter space (e.g., Suyu et al., 2006; Vegetti \& Koopmans, 2009). While rigorous, these methods are computationally intensive. Hezaveh et al. (2017) note that maximum-likelihood modeling of a single strong lens system can require $\sim10^4$ likelihood evaluations, corresponding to days or weeks of computational time even on modern hardware.
+This computational bottleneck becomes critical in the era of large surveys. The Large Synoptic Survey Telescope (LSST) is projected to discover $10^4$-$10^5$ galaxy-galaxy strong lenses (Oguri \& Marshall, 2010), while Euclid may find comparable numbers (Collett, 2015). Processing such samples with traditional pixel-by-pixel lens modeling would require infeasible human and computational resources. This scalability challenge motivates the development of automated, physics-informed methods for lens analysis.
+
+
+\section{Machine Learning Applications in Gravitational Lensing}
+
+\subsection{Convolutional Neural Networks for Lens Discovery}
+
+The application of convolutional neural networks (CNNs) to strong lens identification represents a paradigm shift from visual inspection and rule-based algorithms. Lanusse et al. (2017) pioneered this approach with CMUDeepLens, a ResNet-based architecture trained on $\sim$420,000 simulated LSST images. Their network achieved 90 percent completeness at 99 percent purity for lenses with Einstein radii $\theta_E > 1.4''$ and signal-to-noise ratio $>20$, demonstrating that supervised learning could reliably classify lens candidates.
+Subsequent studies applied similar architectures to real survey data. Petrillo et al. (2017, 2019) used CNNs to identify $\sim$100 new lens candidates in the Kilo-Degree Survey (KiDS), later confirmed spectroscopically. Jacobs et al. (2019) developed networks for the Dark Energy Survey (DES), processing 7.9 million galaxy images and identifying $\sim$500 grade-A lens candidates. These detection pipelines typically employ transfer learning from ImageNet-pretrained models, fine-tuning on domain-specific simulations (Pourrahmani et al., 2018).
+Performance metrics consistently show that CNN-based lens finders achieve superior completeness-purity trade-offs compared to previous automated methods (Metcalf et al., 2019). The key advantage lies in CNNs' ability to learn hierarchical features—from arc-like edges at low levels to global lensing morphology at high levels—directly from data, without hand-crafted feature engineering.
+
+\subsection{Neural Networks for Parameter Inference}
+
+Beyond detection, neural networks have been applied to the inverse problem of parameter estimation. Hezaveh et al. (2017) demonstrated that a CNN could infer SIE+external shear parameters from simulated lens images with comparable accuracy to MCMC methods, but $\sim10^7$ times faster (processing 10,000 lenses in $<$100 seconds on a GPU). This seminal result established that learned inference could dramatically accelerate lens modeling.
+Several studies have extended this framework. Perreault Levasseur et al. (2017) used variational inference with neural density estimators to obtain full posterior distributions over lens parameters, not just point estimates. Morningstar et al. (2018) introduced data augmentation strategies to improve robustness to PSF variations and noise. Schuldt et al. (2021) applied recurrent inference machines to iteratively refine parameter estimates, achieving accuracies comparable to detailed forward modeling.
+However, these approaches face inherent limitations. CNNs trained purely on simulated data may not generalize to the diversity of real lenses if the training distribution is incomplete (Wagner-Carena et al., 2021). Moreover, standard CNNs lack explicit physical constraints: nothing prevents them from predicting non-monotonic mass profiles or violating flux conservation. Systematic biases can arise when networks extrapolate beyond their training regime (Morningstar et al., 2019).
+
+\subsection{The Domain Adaptation Challenge}
+
+A persistent challenge in machine learning for astronomy is the simulation-to-observation gap. While large training sets can be synthesized, real observations include complexities (irregular PSFs, foreground contamination, complex source morphologies) difficult to fully capture in simulations (Birrer et al., 2020). Domain adaptation techniques—training on simulations but testing on real data—have shown mixed success. Some studies report significant performance degradation on real lenses (Schuldt et al., 2023), highlighting the need for physically grounded architectures that generalize beyond narrow training distributions.
+
+\section{Vision Transformers and Hierarchical Attention Mechanisms}
+
+\subsection{The Transformer Architecture in Computer Vision}
+
+The Transformer architecture, originally developed for natural language processing (Vaswani et al., 2017), employs self-attention mechanisms to model long-range dependencies. Dosovitskiy et al. (2021) adapted this to vision with the Vision Transformer (ViT), which treats an image as a sequence of flattened patches and processes them through multi-head self-attention layers.
+The self-attention operation computes attention weights between all patch pairs, allowing each patch to aggregate information globally:
+$$\text{Attention}(Q,K,V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+where $Q$, $K$, $V$ are query, key, and value matrices derived from patch embeddings, and $d_k$ is the key dimension. This global receptive field contrasts with CNNs, where effective receptive fields grow gradually with depth.
+ViT demonstrated that Transformers can match or exceed CNN performance on ImageNet when pre-trained on large datasets (Dosovitskiy et al., 2021). However, pure ViTs suffer from quadratic computational complexity $\mathcal{O}(N^2)$ in the number of patches $N$, limiting applicability to high-resolution images. Furthermore, ViTs lack the inductive biases (translation equivariance, locality) inherent to convolutions, requiring more data to achieve comparable performance (Dosovitskiy et al., 2021).
+
+\subsection{The Swin Transformer: Hierarchical Vision Backbone}
+
+Liu et al. (2021) addressed these limitations with the Swin Transformer, which introduces two key innovations: (1) hierarchical feature maps through patch merging, analogous to CNN downsampling; and (2) shifted window attention to reduce complexity while maintaining global context.
+In Swin, self-attention is restricted to non-overlapping local windows of size $M \times M$ patches, reducing complexity to $\mathcal{O}(N)$. To enable cross-window communication, consecutive layers employ shifted window partitions:
+$$\text{Layer } \ell: \text{ Windows at positions } (0,0), (M,0), (0,M), \ldots$$ $$\text{Layer } \ell+1: \text{ Windows at positions } (M/2, M/2), \ldots$$
+This shifting strategy allows information flow across the entire image while maintaining computational efficiency (Liu et al., 2021). Swin Transformers achieve state-of-the-art results on COCO object detection (63.1 box AP) and ADE20K semantic segmentation (53.5 mIoU), outperforming both CNNs and ViT variants.
+For astrophysical applications, Swin's hierarchical structure is particularly advantageous. Gravitational lens images contain features at multiple scales: fine arcs and arclets (requiring high resolution) and global mass distributions (requiring large receptive fields). Swin naturally captures this multi-scale structure through its pyramid architecture (Liu et al., 2021).
+
+\subsection{Transformers in Astronomical Image Analysis}
+
+Recent works have begun exploring Transformers for astronomical tasks. Stein et al. (2022) applied ViT to supernova classification, finding improved performance over CNNs on time-domain data. Hayat et al. (2021) used Transformers for galaxy morphology classification, achieving competitive results on Galaxy Zoo data. However, these studies primarily employ standard Transformer architectures without domain-specific modifications.
+To our knowledge, no prior work has systematically applied Swin Transformers to gravitational lensing, nor integrated lensing physics into a Transformer-based architecture. This represents a significant opportunity: combining Swin's efficient multi-scale attention with physical priors from lens theory.
+
+\section{Physics-Informed Neural Networks: Theory and Applications}
+
+\subsection{Foundation Principles of PINNs}
+
+Physics-Informed Neural Networks (PINNs), introduced by Raissi et al. (2019), embed known physical laws directly into neural network training. The core idea is to augment the data-driven loss with terms enforcing governing equations. For a system described by a partial differential equation $\mathcal{F}[\boldsymbol{u}; \boldsymbol{\lambda}] = 0$ (where $\boldsymbol{u}$ is the solution field and $\boldsymbol{\lambda}$ are parameters), the PINN loss combines data fidelity and physics residuals:
+$$\mathcal{L} = \mathcal{L}{\text{data}} + \lambda{\text{PDE}}\mathcal{L}_{\text{PDE}}$$
+$$\mathcal{L}{\text{data}} = \frac{1}{N_u}\sum{i=1}^{N_u}|\boldsymbol{u}(\boldsymbol{x}_i;\boldsymbol{\theta}) - \boldsymbol{u}_i|^2$$
+$$\mathcal{L}{\text{PDE}} = \frac{1}{N_f}\sum{j=1}^{N_f}|\mathcal{F}[\boldsymbol{u}(\boldsymbol{x}_j;\boldsymbol{\theta}); \boldsymbol{\lambda}]|^2$$
+where $\boldsymbol{\theta}$ denotes network parameters, $N_u$ is the number of data points, and $N_f$ is the number of collocation points where the PDE is enforced (Raissi et al., 2019).
+Theoretical analyses show PINNs provide strong regularization: the physics loss constrains the hypothesis space to physically plausible solutions, dramatically improving data efficiency (Raissi et al., 2019; Karniadakis et al., 2021). Wang et al. (2021) demonstrate that PINNs can solve high-dimensional PDEs with orders of magnitude fewer training samples than purely data-driven approaches.
+
+\subsection{Physics-Informed Learning in Gravitational Lensing}
+
+Several recent studies have applied PINN concepts to lensing. Morningstar et al. (2019) introduced a "hybrid" network that uses the lens equation to map predicted lens parameters to image-plane quantities, comparing these to observations. By backpropagating through the physical forward model, gradients explicitly encode lensing physics.
+Varma et al. (2024) developed "LensPINN," combining Vision Transformers with differentiable ray-tracing. Their architecture predicts lens mass maps, then applies the lens equation via a differentiable renderer to synthesize images. The loss compares rendered and observed images, ensuring consistency with lensing theory. On simulated data, LensPINN achieves 15-20 percent improvement in mass reconstruction accuracy compared to black-box CNNs.
+Ribli et al. (2019) explored neural posterior estimation with summary statistics derived from lens equation residuals. By conditioning density estimators on physics-based features, they achieve more accurate and better-calibrated posteriors than networks using raw pixel inputs.
+These studies converge on a key finding: incorporating lensing physics improves generalization, interpretability, and data efficiency. However, existing physics-informed lensing networks primarily use CNN or basic ViT backbones, not leveraging recent advances in efficient attention mechanisms.
+
+
+
+
+\section{Synthesis and Research Gap}
+
+\subsection{Current State of the Field}
+
+The literature reveals three parallel advances relevant to automated gravitational lens analysis:
+1.	Hierarchical Vision Architectures: Swin Transformers achieve state-of-the-art performance on computer vision benchmarks through efficient multi-scale attention (Liu et al., 2021), offering superior representational power compared to CNNs and standard ViTs.
+2.	Physics-Informed Learning: Embedding domain knowledge via differentiable physical models demonstrably improves accuracy, interpretability, and data efficiency for inverse problems (Raissi et al., 2019; Karniadakis et al., 2021). In lensing, physics-informed architectures outperform black-box networks (Varma et al., 2024).
+3.	Machine Learning for Lensing: CNNs and ViTs have been successfully applied to lens detection and parameter inference, but face challenges in generalization and physical consistency (Hezaveh et al., 2017; Morningstar et al., 2019).
+
+However, these advances have not been integrated. Existing physics-informed lensing networks use CNN or basic ViT backbones without hierarchical attention. Conversely, applications of Swin Transformers in astronomy lack physical constraints. No prior work combines efficient multi-scale attention with explicit lensing physics and state-of-the-art training stability.
+
+\subsection{Identified Research Gap}
+
+Despite significant progress, current methods face limitations:
+•	Computational Efficiency: Physics-informed CNNs and ViTs scale poorly to high-resolution images due to quadratic attention (ViT) or limited receptive fields (CNN).
+•	Physical Consistency: Black-box Transformers lack guarantees of physical plausibility, potentially predicting non-physical lens configurations.
+•	Training Robustness: Scientific datasets are small and noisy compared to natural images. Standard training procedures (used in existing lensing ML) may not achieve optimal convergence.
+The critical gap is the absence of a unified framework that simultaneously achieves:
+1.	Efficient multi-scale feature learning (via Swin-like hierarchical attention)
+2.	Explicit physical constraints (via differentiable lens equation integration)
+3.	Training stability on limited scientific data (via advanced optimization)
+
+Addressing this gap could revolutionize automated gravitational lens analysis, enabling rapid, accurate, and physically consistent inference on large upcoming survey datasets. The proposed research aims to fill this void by developing a novel physics-informed Swin Transformer architecture tailored for gravitational lensing applications.
+
+\subsection{Research Objectives}
+
+This thesis addresses the identified gap by developing GraviLens-Swin-v2.01-STABLE, a novel deep learning architecture for gravitational lens analysis. Our approach integrates:
+1.	Hierarchical Transformer Backbone: Adapting Swin Transformer's shifted-window attention to efficiently process multi-scale lensing features.
+2.	Physics-Informed Encoder: Embedding the Singular Isothermal Ellipsoid (SIE) lens equation as a differentiable layer, constraining predictions to physically realizable mass distributions.
+3.	Advanced Training Regimen: Implementing Lookahead optimization, exponential moving average, adaptive gradient clipping, warmup-cosine scheduling, and label smoothing to ensure stable convergence on realistic lens datasets.
+
+
+By unifying these components, GraviLens-Swin aims to achieve superior performance on lens detection and parameter estimation tasks compared to existing methods, while maintaining physical interpretability and computational efficiency suitable for large-scale survey applications. The following chapters detail the architecture design, training procedures, experimental results, and implications for future gravitational lensing studies.

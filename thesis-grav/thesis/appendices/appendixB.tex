@@ -1,0 +1,75 @@
+% =============================================================================
+% FILE: appendices/appendixB.tex
+% DESCRIPTION: Code Implementation
+% =============================================================================
+
+\chapter{CODE IMPLEMENTATION DETAILS}
+
+\section{Physics-Informed Layer Implementation}
+
+\begin{verbatim}
+class SIEDeflection(nn.Module):
+    def __init__(self):
+        super().__init__()
+        
+    def forward(self, params, coords):
+        theta_E, q, phi = params
+        x, y = coords
+        
+        # Rotate coordinates
+        x_rot = x * cos(phi) + y * sin(phi)
+        y_rot = -x * sin(phi) + y * cos(phi)
+        
+        # Compute deflection
+        r = sqrt(q**2 * x_rot**2 + y_rot**2)
+        alpha_x = theta_E * q**2 * x_rot / r
+        alpha_y = theta_E * y_rot / r
+        
+        return alpha_x, alpha_y
+\end{verbatim}
+
+\section{Training Loop Pseudocode}
+
+\begin{verbatim}
+for epoch in range(num_epochs):
+    for batch in dataloader:
+        # Forward pass
+        pred_class, pred_params = model(batch)
+        
+        # Compute losses
+        loss_cls = BCELoss(pred_class, labels)
+        loss_physics = SIELoss(pred_params, images)
+        loss = loss_cls + lambda * loss_physics
+        
+        # Backward pass
+        optimizer.zero_grad()
+        loss.backward()
+        clip_gradients(model.parameters())
+        optimizer.step()
+        
+        # Update EMA
+        update_ema(model, ema_model, decay=0.999)
+\end{verbatim}
+
+\section{Repository Information}
+
+Full code available at: \url{https://github.com/[username]/gravilens}
+
+% =============================================================================
+% USAGE INSTRUCTIONS:
+% =============================================================================
+% 
+% Save each chapter to:
+%   chapters/chapter1.tex
+%   chapters/chapter2.tex
+%   chapters/chapter3.tex
+%   chapters/chapter4.tex
+%   chapters/chapter5.tex
+%   chapters/chapter6.tex
+%   appendices/appendixA.tex
+%   appendices/appendixB.tex
+%
+% These are SHORT placeholders for testing compilation.
+% Expand each section with your actual research content.
+%
+% =============================================================================

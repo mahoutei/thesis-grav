@@ -1,0 +1,34 @@
+% =============================================================================
+% FILE: appendices/appendixA.tex
+% DESCRIPTION: Mathematical Derivations
+% =============================================================================
+
+\chapter{MATHEMATICAL DERIVATIONS}
+
+\section{SIE Deflection Angle Derivation}
+
+Starting from the lensing potential for an elliptical mass distribution:
+\begin{equation}
+\psi(x,y) = \theta_E \sqrt{q^2 x^2 + y^2}
+\end{equation}
+
+The deflection angle components are:
+\begin{align}
+\alpha_x &= \frac{\partial \psi}{\partial x} = \frac{\theta_E q^2 x}{\sqrt{q^2 x^2 + y^2}} \\
+\alpha_y &= \frac{\partial \psi}{\partial y} = \frac{\theta_E y}{\sqrt{q^2 x^2 + y^2}}
+\end{align}
+
+\section{Gradient Flow Through Physics Layer}
+
+For backpropagation through the SIE layer:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \theta_E} = \frac{\partial \mathcal{L}}{\partial \alpha_x}\frac{\partial \alpha_x}{\partial \theta_E} + \frac{\partial \mathcal{L}}{\partial \alpha_y}\frac{\partial \alpha_y}{\partial \theta_E}
+\end{equation}
+
+\section{EMA Update Rule}
+
+The exponential moving average weight update:
+\begin{equation}
+\theta_{\text{EMA}}^{(t+1)} = \beta \theta_{\text{EMA}}^{(t)} + (1-\beta)\theta^{(t+1)}
+\end{equation}
+where $\beta = 0.999$ in our implementation.
